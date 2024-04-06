@@ -3,6 +3,7 @@ import {Link,useNavigate} from "react-router-dom"
 import apiRequest from '../utils/apiRequest'
 import {useDispatch,useSelector} from "react-redux"
 import { signInFailure,signInSuccess,signInStart } from '../redux/user/userSlice'
+import OAuth from '../components/OAuth'
 
 const SignIn = () => {
   const navigate = useNavigate()
@@ -51,6 +52,7 @@ const SignIn = () => {
         >
           {loading ? "Loading..." : "Sign In"}
         </button>
+        <OAuth />
       </form>
       <div className='flex gap-2 mt-5'>
         <p>Don't Have an account?</p>
