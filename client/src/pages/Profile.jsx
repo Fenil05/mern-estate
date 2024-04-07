@@ -3,13 +3,17 @@ import { useSelector,useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
 import {getDownloadURL, getStorage, ref, uploadBytesResumable} from "firebase/storage"
 import {app} from "../firebase.js"
+import { updateUserFailure,updateUserSuccess,updateUserStart } from '../redux/user/userSlice.js'
+import apiRequest from "../utils/apiRequest.js"
 
 const Profile = () => {
   const fileRef = useRef(null)
-  const {currentUser}  = useSelector((state) => state.user)
+  const dispatch = useDispatch()
+  const {currentUser,loading,error}  = useSelector((state) => state.user)
   const [formData,setFormData] = useState({})
   const [file,setFile] = useState(undefined)
   const [filePerc,setFilePerc] = useState(0)
+  const [updateSuccess,setUpdateSuccess] = useState(false)
   const [fileUploadError,setFileUploadError] = useState(false)
 
   useEffect(()=>{
@@ -43,11 +47,29 @@ const Profile = () => {
     )
   }
 
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,[e.target.id]:e.target.value
+    })
+  }
+
+  const handleSubmit =async(e) => {
+    e.preventDefault()
+    try {
+      setUpdateSuccess(false)
+      dispatch(updateUserStart())
+      const res = await apiRequest.post(`user/update/${currentUser._id}`,formData)
+      dispatch(updateUserSuccess(res.data))
+      setUpdateSuccess(true)
+    } catch (err) {
+      dispatch(updateUserFailure(err.response.data.message))
+    }
+  }
 
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>Profile</h1>
-      <form className='flex flex-col gap-4'>
+      <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         <input
           type='file'
           ref={fileRef}
@@ -77,24 +99,30 @@ const Profile = () => {
           type='text'
           placeholder='username'
           id='username'
+          defaultValue={currentUser.username}
           className='border p-3 rounded-lg'
+          onChange={handleChange}
         />
         <input
           type='email'
           placeholder='email'
           id='email'
+          defaultValue={currentUser.email}
+          onChange={handleChange}
           className='border p-3 rounded-lg'
         />
         <input
           type='password'
           placeholder='password'
           id='password'
+          onChange={handleChange}
           className='border p-3 rounded-lg'
         />
         <button
           className='bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80'
+          disabled={loading}
         >
-          Update
+          {loading ? "Loading..." : "Update"}
         </button>
         <Link
           className='bg-green-700 text-white p-3 rounded-lg uppercase text-center hover:opacity-95'
@@ -116,7 +144,12 @@ const Profile = () => {
       </div>
       <button 
       className='text-green-700 w-full'>Show Listings</button>
-      <p className='text-red-700 mt-5'></p>
+      <p className='text-red-700 mt-5'>
+        {error ? error : ""}
+      </p>
+      <p className='text-green-700 mt-5'>
+        {updateSuccess ? "User updated successfully " : ""}
+      </p>
       
     </div>
 
