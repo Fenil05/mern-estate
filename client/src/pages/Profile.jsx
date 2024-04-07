@@ -3,7 +3,7 @@ import { useSelector,useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
 import {getDownloadURL, getStorage, ref, uploadBytesResumable} from "firebase/storage"
 import {app} from "../firebase.js"
-import { updateUserFailure,updateUserSuccess,updateUserStart,deleteUserFailure,deleteUserStart,deleteUserSuccess} from '../redux/user/userSlice.js'
+import { updateUserFailure,updateUserSuccess,updateUserStart,deleteUserFailure,deleteUserStart,deleteUserSuccess, signOutUserStart, signOutUserSuccess, signOutUserFailure} from '../redux/user/userSlice.js'
 import apiRequest from "../utils/apiRequest.js"
 
 const Profile = () => {
@@ -73,6 +73,16 @@ const Profile = () => {
       dispatch(deleteUserSuccess(res.data))
     } catch (err) {
       dispatch(deleteUserFailure(err.response.data.message))
+    }
+  }
+
+  const handleSignOut = async() => {
+    try {
+      dispatch(signOutUserStart())
+      const res = await apiRequest.post(`auth/signout`)
+      dispatch(signOutUserSuccess())
+    } catch (err) {
+      dispatch(signOutUserFailure(err.response.data.message))
     }
   }
 
@@ -149,6 +159,7 @@ const Profile = () => {
           Delete account
         </span>
         <span className='text-red-700 cursor-pointer'
+        onClick={handleSignOut}
         >
           Sign out
         </span>
